@@ -4,6 +4,7 @@ import {
   GRID_HEIGHT,
   GRID_WIDTH,
   LAB_MAP,
+  PATROL_POINTS,
   PLAYER_START,
   TILE_SIZE,
 } from "../../application/simulation/labLevel";
@@ -15,6 +16,7 @@ import {
   type PerceptionSimulationState,
 } from "../../application/simulation/perceptionSimulation";
 import { cellCenter, isWalkable, worldToCell, type GridPoint } from "../../domain/model/grid";
+import { computeGuardState, initialGuardState, type GuardStatus } from "../../domain/guard/guardState";
 import type { Vector2 } from "../../domain/model/vector";
 import { advanceAlongPath } from "../../domain/navigation/pathFollower";
 import type { SearchAlgorithm, SearchResult, SearchStatus } from "../../domain/navigation/search";
@@ -41,6 +43,12 @@ const VISION_LABELS: Readonly<Record<VisionReason, string>> = {
   "invalid-facing": "DIRECCION INVALIDA",
 };
 
+const GUARD_STATUS_LABELS: Readonly<Record<GuardStatus, string>> = {
+  patrullar: "PATRULLAR",
+  investigar: "INVESTIGAR",
+  perseguir: "PERSEGUIR",
+};
+
 export class GameScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Rectangle;
   private playerBody!: Phaser.Physics.Arcade.Body;
@@ -65,6 +73,8 @@ export class GameScene extends Phaser.Scene {
   private guardWaypoints: readonly Vector2[] = [];
   private nextWaypoint = 0;
   private perceptionState: PerceptionSimulationState = initialPerceptionState();
+  private guardStatus: GuardStatus = initialGuardState();
+  private patrolIndex = 0;
 
   public constructor() {
     super("GameScene");
@@ -77,6 +87,8 @@ export class GameScene extends Phaser.Scene {
     this.guardWaypoints = [];
     this.nextWaypoint = 0;
     this.perceptionState = initialPerceptionState();
+    this.guardStatus = initialGuardState();
+    this.patrolIndex = 0;
     this.cameras.main.setBackgroundColor("#10161c");
     this.drawGrid();
 
@@ -153,7 +165,10 @@ export class GameScene extends Phaser.Scene {
       .setDepth(10);
 
     this.input.on("pointerdown", this.handlePointerDown, this);
-    this.renderNavigation();
+    const firstPatrolPoint = PATROL_POINTS[0];
+    if (firstPatrolPoint) {
+      this.navigateToCell(firstPatrolPoint);
+    }
     this.updatePerception(0);
   }
 
@@ -210,11 +225,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private renderNavigation(): void {
+    this.navigateToCell(this.navigationGoal);
+  }
+
+  private navigateToCell(goal: GridPoint): void {
     const guardCell = worldToCell({ x: this.guard.x, y: this.guard.y }, TILE_SIZE);
     const result = calculateRoute(
       LAB_MAP,
       guardCell,
-      this.navigationGoal,
+      goal,
       this.navigationAlgorithm,
     );
     this.drawSearchResult(result);
@@ -223,7 +242,7 @@ export class GameScene extends Phaser.Scene {
       : [];
     this.nextWaypoint = 0;
 
-    const targetPosition = cellCenter(this.navigationGoal, TILE_SIZE);
+    const targetPosition = cellCenter(goal, TILE_SIZE);
     this.targetMarker.setPosition(targetPosition.x, targetPosition.y);
     this.targetMarker.setStrokeStyle(3, result.status === "success" ? 0x73c991 : 0xe16969);
 
@@ -278,6 +297,14 @@ export class GameScene extends Phaser.Scene {
     if (movement.direction) {
       this.guardFacing = movement.direction;
     }
+
+    if (this.guardStatus === "patrullar" && movement.completed && this.guardWaypoints.length > 0) {
+      this.patrolIndex = (this.patrolIndex + 1) % PATROL_POINTS.length;
+      const nextPatrolPoint = PATROL_POINTS[this.patrolIndex];
+      if (nextPatrolPoint) {
+        this.navigateToCell(nextPatrolPoint);
+      }
+    }
   }
 
   private updatePerception(time: number): void {
@@ -294,6 +321,25 @@ export class GameScene extends Phaser.Scene {
       timeMs: time,
     });
     this.perceptionState = frame.state;
+
+    const guardResult = computeGuardState(this.guardStatus, {
+      soundHeard: frame.soundHeard,
+      visionVisible: frame.vision.visible,
+    });
+
+    if (guardResult.transition) {
+      this.guardStatus = guardResult.state;
+      if (guardResult.state === "perseguir") {
+        this.navigateToCell(worldToCell(target, TILE_SIZE));
+      } else if (guardResult.state === "investigar") {
+        const soundPos = this.perceptionState.soundEvent?.position;
+        if (soundPos) {
+          this.navigateToCell(worldToCell(soundPos, TILE_SIZE));
+        }
+      }
+    } else {
+      this.guardStatus = guardResult.state;
+    }
 
     this.drawPerception(frame.vision);
     this.updateTelemetry(time, frame.vision, frame.soundHeard);
@@ -342,6 +388,7 @@ export class GameScene extends Phaser.Scene {
       : "-";
 
     this.navigationHud.setText([
+      `estado ${GUARD_STATUS_LABELS[this.guardStatus]}`,
       ...this.navigationSummary,
       `vision ${VISION_LABELS[vision.reason]}`,
       `sonido ${sound}`,
