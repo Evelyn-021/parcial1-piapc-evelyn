@@ -14,18 +14,27 @@ Esta plantilla prepara un repositorio publico e individual para proyectos academ
 ## Datos del proyecto
 
 - Estudiante: Alonso, Evelyn
-- Materia, comision y anio: Programación de IA y patrones de comportamiento
-- Nombre del proyecto: Parcial 1
-- Motor y version: [PENDIENTE]
-- Estado: [PENDIENTE]
+- Materia, comisión y año: Programación de IA y patrones de comportamiento
+- Nombre del proyecto: Guardia de Sigilo - Parcial 1
+- Motor y version: Phaser 3.90.0 + TypeScript 5.9.3 + Vite 6.4.3
+- Estado: Finalizado / Entregado
 
 ## Descripcion
 
-[Explica brevemente el juego o prototipo y su objetivo actual.]
+Prototipo de sigilo 2D cenital centrado en el comportamiento de un guardia. La intervención implementa una máquina de estados finita con los estados Patrullar, Investigar y Perseguir, utilizando percepción sonora y visual. La visión tiene prioridad sobre el sonido y el estado actual del guardia se muestra en el HUD.
 
 ## Requisitos y ejecucion
 
-[Indica el motor, herramientas, versiones y pasos necesarios para abrir o ejecutar el proyecto.]
+Requisitos:
+- Node.js 22 o superior
+- npm
+
+Para ejecutar el proyecto:
+
+```bash
+npm install
+npm run dev
+```
 
 ## Controles
 
