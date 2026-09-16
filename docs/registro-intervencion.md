@@ -4,8 +4,9 @@ Registra cada ciclo relevante de herramienta. No copies razonamientos internos d
 
 | Fecha o version | Instruccion resumida | Accion o herramienta | Resultado observable | Decision humana |
 |---|---|---|---|---|
-| [PENDIENTE] | [PENDIENTE] | [PENDIENTE] | [PENDIENTE] | [Aceptar, rechazar, corregir o detener] |
+| 2026-09-15 | Explorar README.md, AGENTS.md, GDD.md y docs/ sin modificar archivos | OpenCode MiMo V2.5 Free | Repositorio contiene solo plantillas PIAPC. Sin codigo fuente, motor, assets ni pruebas. README.md parcialmente completado. GDD.md y docs/ pendientes. | Se autorizo unicamente la edicion de docs/registro-intervencion.md para documentar la exploracion realizada. No se autorizo edicion de codigo, ejecucion de comandos ni modificaciones al proyecto. Antes de habilitar nuevas escrituras se completara la matriz de permisos.|
 
 ## Correcciones y acciones rechazadas
 
-- [Que se rechazo o corrigio y por que.]
+- No se autorizo ninguna modificacion de codigo ni ejecucion de comandos.
+- La unica escritura realizada fue sobre docs/registro-intervencion.md para registrar la exploracion inicial.

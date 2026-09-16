@@ -4,15 +4,23 @@ Completa esta matriz antes de habilitar acciones de un agente. Una accion no dec
 
 | Accion | Estado | Alcance o justificacion |
 |---|---|---|
-| Leer archivos del proyecto | [Permitida/Pendiente/Prohibida] | [PENDIENTE] |
-| Buscar rutas y simbolos | [Permitida/Pendiente/Prohibida] | [PENDIENTE] |
-| Editar archivos previstos | [Permitida/Pendiente/Prohibida] | [PENDIENTE] |
-| Ejecutar scripts documentados | [Permitida/Pendiente/Prohibida] | [PENDIENTE] |
-| Instalar dependencias | [Permitida/Pendiente/Prohibida] | [PENDIENTE] |
-| Usar red | [Permitida/Pendiente/Prohibida] | [PENDIENTE] |
-| Publicar o subir cambios | [Permitida/Pendiente/Prohibida] | [PENDIENTE] |
-| Acceder a secretos o credenciales | Prohibida | No corresponde al trabajo. |
+| Leer archivos del proyecto | Permitida | Todo el repositorio |
+| Buscar rutas y simbolos | Permitida | Todo el repositorio |
+| Editar archivos previstos | Pendiente | Solo luego de definir alcance y plan |
+| Ejecutar scripts documentados | Pendiente | Solo comandos documentados o autorizados |
+| Instalar dependencias | Prohibida | Fuera de alcance |
+| Usar red | Prohibida | Fuera de alcance |
+| Publicar o subir cambios | Prohibida | Fuera de alcance |
+| Acceder a secretos o credenciales | Prohibida | Prohibido |
 
 ## Condiciones de detencion
 
-- [Situacion que obliga a detener la herramienta y consultar.]
+## Condiciones de detencion
+
+- Detener la herramienta si propone modificar archivos fuera del alcance definido.
+- Detener la herramienta si necesita instalar dependencias o usar red.
+- Detener la herramienta si requiere acceso a secretos, credenciales o datos privados.
+- Detener la herramienta si propone ejecutar comandos no documentados ni autorizados.
+- Detener la herramienta si aparece una decision de disenio no definida por la consigna.
+- Detener la herramienta si una validacion falla y no se comprende la causa.
+- Detener la herramienta si aparecen cambios ajenos al alcance del parcial.
