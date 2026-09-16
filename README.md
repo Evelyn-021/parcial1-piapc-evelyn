@@ -13,9 +13,9 @@ Esta plantilla prepara un repositorio publico e individual para proyectos academ
 
 ## Datos del proyecto
 
-- Estudiante: [PENDIENTE]
-- Materia, comision y anio: [PENDIENTE]
-- Nombre del proyecto: [PENDIENTE]
+- Estudiante: Alonso, Evelyn
+- Materia, comision y anio: Programación de IA y patrones de comportamiento
+- Nombre del proyecto: Parcial 1
 - Motor y version: [PENDIENTE]
 - Estado: [PENDIENTE]
 
