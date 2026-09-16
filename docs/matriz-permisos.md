@@ -6,7 +6,8 @@ Completa esta matriz antes de habilitar acciones de un agente. Una accion no dec
 |---|---|---|
 | Leer archivos del proyecto | Permitida | Todo el repositorio |
 | Buscar rutas y simbolos | Permitida | Todo el repositorio |
-| Editar archivos previstos | Pendiente | Solo luego de definir alcance y plan |
+| Editar archivos previstos | Permitida | Solo los archivos definidos en docs/plan.md |
+| Ejecutar scripts documentados | Permitida | Solo scripts documentados en package.json para validación |
 | Ejecutar scripts documentados | Pendiente | Solo comandos documentados o autorizados |
 | Instalar dependencias | Prohibida | Fuera de alcance |
 | Usar red | Prohibida | Fuera de alcance |
