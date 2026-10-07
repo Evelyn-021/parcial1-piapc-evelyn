@@ -50,6 +50,18 @@ const GUARD_STATUS_LABELS: Readonly<Record<GuardStatus, string>> = {
   perseguir: "PERSEGUIR",
 };
 
+const ALERT_METER_WIDTH = 160;
+const ALERT_METER_HEIGHT = 8;
+const ALERT_METER_FILL_HEIGHT = 6;
+const ALERT_METER_BG_COLOR = 0x1a1f2a;
+const ALERT_METER_BG_ALPHA = 0.8;
+const ALERT_METER_BORDER_COLOR = 0x3a4c58;
+const ALERT_METER_BORDER_ALPHA = 1.0;
+const ALERT_METER_PATRULLAR_COLOR = 0x2e7d32;
+const ALERT_METER_INVESTIGAR_COLOR = 0xf57f17;
+const ALERT_METER_PERSEGUIR_COLOR = 0xc62828;
+const ALERT_METER_FILL_ALPHA = 1.0;
+
 interface ConeStyle {
   readonly fillColor: number;
   readonly fillAlpha: number;
@@ -101,6 +113,7 @@ export class GameScene extends Phaser.Scene {
   private guardStatus: GuardStatus = initialGuardState();
   private patrolIndex = 0;
   private patrolPauseRemainingMs = 0;
+  private alertMeterGraphics!: Phaser.GameObjects.Graphics;
 
   public constructor() {
     super("GameScene");
@@ -195,6 +208,9 @@ export class GameScene extends Phaser.Scene {
     if (firstPatrolPoint) {
       this.navigateToCell(firstPatrolPoint);
     }
+    this.alertMeterGraphics = this.add.graphics().setDepth(10);
+    this.drawAlertMeterBackground();
+    this.updateAlertMeter();
     this.updatePerception(0);
   }
 
@@ -441,6 +457,53 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private drawAlertMeterBackground(): void {
+    this.alertMeterGraphics.clear();
+    const x = this.navigationHud.x - ALERT_METER_WIDTH;
+    const y = this.navigationHud.y + this.navigationHud.height + 4;
+    // Fondo
+    this.alertMeterGraphics.fillStyle(ALERT_METER_BG_COLOR, ALERT_METER_BG_ALPHA);
+    this.alertMeterGraphics.fillRect(x, y, ALERT_METER_WIDTH, ALERT_METER_HEIGHT);
+    // Borde
+    this.alertMeterGraphics.lineStyle(1, ALERT_METER_BORDER_COLOR, ALERT_METER_BORDER_ALPHA);
+    this.alertMeterGraphics.strokeRect(x, y, ALERT_METER_WIDTH, ALERT_METER_HEIGHT);
+  }
+
+  private getAlertLevel(status: GuardStatus): number {
+    switch (status) {
+      case "patrullar":
+        return 1 / 3;
+      case "investigar":
+        return 2 / 3;
+      case "perseguir":
+        return 1;
+    }
+  }
+
+  private updateAlertMeter(): void {
+    this.alertMeterGraphics.clear();
+    this.drawAlertMeterBackground();
+
+    const level = this.getAlertLevel(this.guardStatus);
+    const fillWidth = ALERT_METER_WIDTH * level;
+    const x = this.navigationHud.x - ALERT_METER_WIDTH;
+    const y = this.navigationHud.y + this.navigationHud.height + 4 + 1; // +1 para centrar verticalmente (margen 1px)
+    let fillColor: number;
+    switch (this.guardStatus) {
+      case "patrullar":
+        fillColor = ALERT_METER_PATRULLAR_COLOR;
+        break;
+      case "investigar":
+        fillColor = ALERT_METER_INVESTIGAR_COLOR;
+        break;
+      case "perseguir":
+        fillColor = ALERT_METER_PERSEGUIR_COLOR;
+        break;
+    }
+    this.alertMeterGraphics.fillStyle(fillColor, ALERT_METER_FILL_ALPHA);
+    this.alertMeterGraphics.fillRect(x, y, fillWidth, ALERT_METER_FILL_HEIGHT);
+  }
+
   private updateTelemetry(time: number, vision: VisionResult, soundHeard: boolean): void {
     const age = timeSinceLastPerception(this.perceptionState.memory, time);
     const memory = age === null
@@ -457,5 +520,6 @@ export class GameScene extends Phaser.Scene {
       `sonido ${sound}`,
       memory,
     ]);
+    this.updateAlertMeter();
   }
 }
