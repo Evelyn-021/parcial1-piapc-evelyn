@@ -393,11 +393,11 @@ export class GameScene extends Phaser.Scene {
       this.guardStatus = guardResult.state;
     }
 
-    this.drawPerception(frame.vision);
+    this.drawPerception(frame.vision, frame.soundHeard, time);
     this.updateTelemetry(time, frame.vision, frame.soundHeard);
   }
 
-  private drawPerception(vision: VisionResult): void {
+  private drawPerception(vision: VisionResult, soundHeard: boolean, time: number): void {
     this.perceptionGraphics.clear();
     const facingAngle = Math.atan2(this.guardFacing.y, this.guardFacing.x);
     const halfFieldOfView = FIELD_OF_VIEW / 2;
@@ -418,12 +418,20 @@ export class GameScene extends Phaser.Scene {
     this.perceptionGraphics.strokePath();
 
     if (this.perceptionState.soundEvent) {
-      this.perceptionGraphics.lineStyle(2, 0xe5b454, 0.8);
-      this.perceptionGraphics.strokeCircle(
-        this.perceptionState.soundEvent.position.x,
-        this.perceptionState.soundEvent.position.y,
-        this.perceptionState.soundEvent.radius,
-      );
+      const elapsed = time - this.perceptionState.soundEvent.emittedAtMs;
+      const pulsePhase = (elapsed % 400) / 400;
+      const pulseScale = 1 + Math.sin(pulsePhase * Math.PI * 2) * 0.06;
+      const displayRadius = this.perceptionState.soundEvent.radius * pulseScale;
+      const x = this.perceptionState.soundEvent.position.x;
+      const y = this.perceptionState.soundEvent.position.y;
+      if (soundHeard) {
+        this.perceptionGraphics.fillStyle(0xe5b454, 0.25);
+        this.perceptionGraphics.fillCircle(x, y, displayRadius);
+        this.perceptionGraphics.lineStyle(3, 0xe5b454, 0.9);
+      } else {
+        this.perceptionGraphics.lineStyle(2, 0xe5b454, 0.6);
+      }
+      this.perceptionGraphics.strokeCircle(x, y, displayRadius);
     }
 
     const lastKnown = this.perceptionState.memory.lastKnownPosition;
