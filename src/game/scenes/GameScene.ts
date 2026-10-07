@@ -377,6 +377,10 @@ export class GameScene extends Phaser.Scene {
       if (guardResult.state !== "patrullar") {
         this.patrolPauseRemainingMs = 0;
       }
+      if (guardResult.state === "perseguir" && guardResult.transition.reason === "vision") {
+        this.cameras.main.shake(400, 0.015);
+        this.cameras.main.flash(150, 255, 0, 0);
+      }
       if (guardResult.state === "perseguir") {
         this.navigateToCell(worldToCell(target, TILE_SIZE));
       } else if (guardResult.state === "investigar") {
