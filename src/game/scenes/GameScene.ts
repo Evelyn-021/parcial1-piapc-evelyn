@@ -29,6 +29,7 @@ const VISION_RANGE = 220;
 const FIELD_OF_VIEW = Math.PI / 2;
 const SOUND_RADIUS = 190;
 const SOUND_DURATION_MS = 800;
+const PATROL_PAUSE_MS = 1500;
 const STATUS_LABELS: Readonly<Record<SearchStatus, string>> = {
   success: "EXITO",
   unreachable: "INALCANZABLE",
@@ -99,6 +100,7 @@ export class GameScene extends Phaser.Scene {
   private perceptionState: PerceptionSimulationState = initialPerceptionState();
   private guardStatus: GuardStatus = initialGuardState();
   private patrolIndex = 0;
+  private patrolPauseRemainingMs = 0;
 
   public constructor() {
     super("GameScene");
@@ -308,6 +310,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateGuardMovement(delta: number): void {
+    if (this.patrolPauseRemainingMs > 0) {
+      this.patrolPauseRemainingMs = Math.max(0, this.patrolPauseRemainingMs - delta);
+      if (this.patrolPauseRemainingMs === 0) {
+        this.patrolIndex = (this.patrolIndex + 1) % PATROL_POINTS.length;
+        const nextPatrolPoint = PATROL_POINTS[this.patrolIndex];
+        if (nextPatrolPoint) {
+          this.navigateToCell(nextPatrolPoint);
+        }
+      }
+      return;
+    }
+
     const previous = { x: this.guard.x, y: this.guard.y };
     const movement = advanceAlongPath(
       previous,
@@ -323,10 +337,17 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (this.guardStatus === "patrullar" && movement.completed && this.guardWaypoints.length > 0) {
-      this.patrolIndex = (this.patrolIndex + 1) % PATROL_POINTS.length;
-      const nextPatrolPoint = PATROL_POINTS[this.patrolIndex];
+      this.patrolPauseRemainingMs = PATROL_PAUSE_MS;
+      const nextPatrolIndex = (this.patrolIndex + 1) % PATROL_POINTS.length;
+      const nextPatrolPoint = PATROL_POINTS[nextPatrolIndex];
       if (nextPatrolPoint) {
-        this.navigateToCell(nextPatrolPoint);
+        const target = cellCenter(nextPatrolPoint, TILE_SIZE);
+        const dx = target.x - this.guard.x;
+        const dy = target.y - this.guard.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 0) {
+          this.guardFacing = { x: dx / dist, y: dy / dist };
+        }
       }
     }
   }
@@ -353,6 +374,9 @@ export class GameScene extends Phaser.Scene {
 
     if (guardResult.transition) {
       this.guardStatus = guardResult.state;
+      if (guardResult.state !== "patrullar") {
+        this.patrolPauseRemainingMs = 0;
+      }
       if (guardResult.state === "perseguir") {
         this.navigateToCell(worldToCell(target, TILE_SIZE));
       } else if (guardResult.state === "investigar") {
