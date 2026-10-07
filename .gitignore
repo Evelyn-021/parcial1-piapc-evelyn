@@ -6,3 +6,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Dependencias y build (no versionar)
+node_modules/
+dist/

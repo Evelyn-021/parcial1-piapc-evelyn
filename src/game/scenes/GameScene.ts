@@ -49,6 +49,30 @@ const GUARD_STATUS_LABELS: Readonly<Record<GuardStatus, string>> = {
   perseguir: "PERSEGUIR",
 };
 
+interface ConeStyle {
+  readonly fillColor: number;
+  readonly fillAlpha: number;
+  readonly lineColor: number;
+  readonly lineAlpha: number;
+  readonly lineWidth: number;
+}
+
+const CONE_REPOSO: ConeStyle = {
+  fillColor: 0x6b8afd,
+  fillAlpha: 0.12,
+  lineColor: 0x6b8afd,
+  lineAlpha: 0.6,
+  lineWidth: 2,
+};
+
+const CONE_ALERTA: ConeStyle = {
+  fillColor: 0xe16969,
+  fillAlpha: 0.25,
+  lineColor: 0xe16969,
+  lineAlpha: 0.9,
+  lineWidth: 3,
+};
+
 export class GameScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Rectangle;
   private playerBody!: Phaser.Physics.Arcade.Body;
@@ -349,7 +373,9 @@ export class GameScene extends Phaser.Scene {
     this.perceptionGraphics.clear();
     const facingAngle = Math.atan2(this.guardFacing.y, this.guardFacing.x);
     const halfFieldOfView = FIELD_OF_VIEW / 2;
-    this.perceptionGraphics.fillStyle(vision.visible ? 0x73c991 : 0x6b8afd, 0.16);
+    const style = vision.visible ? CONE_ALERTA : CONE_REPOSO;
+    this.perceptionGraphics.fillStyle(style.fillColor, style.fillAlpha);
+    this.perceptionGraphics.lineStyle(style.lineWidth, style.lineColor, style.lineAlpha);
     this.perceptionGraphics.beginPath();
     this.perceptionGraphics.moveTo(this.guard.x, this.guard.y);
     this.perceptionGraphics.arc(
@@ -361,6 +387,7 @@ export class GameScene extends Phaser.Scene {
     );
     this.perceptionGraphics.closePath();
     this.perceptionGraphics.fillPath();
+    this.perceptionGraphics.strokePath();
 
     if (this.perceptionState.soundEvent) {
       this.perceptionGraphics.lineStyle(2, 0xe5b454, 0.8);
