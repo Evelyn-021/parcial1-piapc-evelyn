@@ -43,10 +43,10 @@ export function findPathBfs(map: GridMap, start: GridPoint, goal: GridPoint): Se
     explored.push(current);
 
     if (samePoint(current, goal)) {
-      return successResult("bfs", start, goal, parents, explored, maximumFrontier);
+      return successResult("bfs", start, goal, parents, explored, maximumFrontier, map);
     }
 
-    for (const neighbor of walkableNeighbors(map, current)) {
+    for (const { point: neighbor } of walkableNeighbors(map, current)) {
       const key = cellKey(neighbor);
       if (!visited.has(key)) {
         visited.add(key);
@@ -89,16 +89,16 @@ export function findPathAStar(map: GridMap, start: GridPoint, goal: GridPoint): 
     explored.push(current.point);
 
     if (samePoint(current.point, goal)) {
-      return successResult("astar", start, goal, parents, explored, maximumFrontier);
+      return successResult("astar", start, goal, parents, explored, maximumFrontier, map);
     }
 
-    for (const neighbor of walkableNeighbors(map, current.point)) {
+    for (const { point: neighbor, cost: stepCost } of walkableNeighbors(map, current.point)) {
       const neighborKey = cellKey(neighbor);
       if (closed.has(neighborKey)) {
         continue;
       }
 
-      const candidateCost = current.cost + 1;
+      const candidateCost = current.cost + stepCost;
       const knownCost = bestCosts.get(neighborKey);
       if (knownCost === undefined || candidateCost < knownCost) {
         insertionOrder += 1;
@@ -160,6 +160,23 @@ function lowestPriorityNode(frontier: ReadonlyMap<string, AStarNode>): AStarNode
   return selected;
 }
 
+function computePathCost(
+  map: GridMap,
+  start: GridPoint,
+  goal: GridPoint,
+  parents: ReadonlyMap<string, GridPoint>,
+): number {
+  const path = reconstructPath(start, goal, parents);
+  let cost = 0;
+  for (let i = 1; i < path.length; i++) {
+    const point = path[i];
+    if (point) {
+      cost += map.cellCosts.get(cellKey(point)) ?? 1;
+    }
+  }
+  return cost;
+}
+
 function successResult(
   algorithm: SearchAlgorithm,
   start: GridPoint,
@@ -167,13 +184,17 @@ function successResult(
   parents: ReadonlyMap<string, GridPoint>,
   explored: readonly GridPoint[],
   maximumFrontier: number,
+  map: GridMap,
 ): SearchResult {
   const path = reconstructPath(start, goal, parents);
+  const totalCost = algorithm === "astar"
+    ? computePathCost(map, start, goal, parents)
+    : path.length - 1;
   return {
     algorithm,
     status: "success",
     path,
-    totalCost: path.length - 1,
+    totalCost,
     expandedNodes: explored.length,
     maximumFrontier,
     explored,

@@ -3,6 +3,7 @@ import { LAB_MAP, PLAYER_START, TILE_SIZE } from "../../src/application/simulati
 import {
   cellCenter,
   createGridMap,
+  getCellCost,
   isWalkable,
   worldToCell,
 } from "../../src/domain/model/grid";
@@ -35,6 +36,38 @@ describe("grid map", () => {
     expect(() => cellCenter({ x: 0, y: 0 }, 0)).toThrow("Tile size");
     expect(() => worldToCell({ x: Number.NaN, y: 0 }, TILE_SIZE)).toThrow(
       "World coordinates",
+    );
+  });
+});
+
+describe("grid map with cell costs", () => {
+  it("creates grid with default cost 1", () => {
+    const map = createGridMap(3, 3, []);
+    expect(getCellCost(map, { x: 1, y: 1 })).toBe(1);
+  });
+
+  it("creates grid with custom cell costs", () => {
+    const map = createGridMap(3, 3, [], [
+      [{ x: 1, y: 1 }, 5],
+      [{ x: 2, y: 1 }, 5],
+    ]);
+    expect(getCellCost(map, { x: 1, y: 1 })).toBe(5);
+    expect(getCellCost(map, { x: 2, y: 1 })).toBe(5);
+    expect(getCellCost(map, { x: 0, y: 0 })).toBe(1); // default
+  });
+
+  it("rejects cell cost outside the grid", () => {
+    expect(() => createGridMap(2, 2, [], [[{ x: 2, y: 0 }, 3]])).toThrow(
+      "Cell cost is outside the grid",
+    );
+  });
+
+  it("rejects non-positive cell costs", () => {
+    expect(() => createGridMap(2, 2, [], [[{ x: 0, y: 0 }, 0]])).toThrow(
+      "Cell cost must be a positive integer",
+    );
+    expect(() => createGridMap(2, 2, [], [[{ x: 0, y: 0 }, -1]])).toThrow(
+      "Cell cost must be a positive integer",
     );
   });
 });
